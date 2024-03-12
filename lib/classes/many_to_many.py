@@ -1,8 +1,8 @@
 class Game:
     def __init__(self, title):
-        self._title = None
-        self.title = title
+        self._title = title
         self._results = []
+        self._players = []
 
     @property
     def title(self):
@@ -10,32 +10,31 @@ class Game:
 
     @title.setter
     def title(self, title):
-        if self._title is None and isinstance(title, str) and len(title) > 0:
+        if isinstance(title, str) and 1 <= len(title) <= 15:
             self._title = title
 
-    def results(self):
-        # Return the list of results for the game
+    def results(self, new_result = None):
+        if new_result is not None and isinstance(new_result, Result):
+            if new_result not in self._results:
+                self._results.append(new_result)
         return self._results
 
-    def players(self):
-        # Return a list of unique players who participated in the game
-        return list(set(result.player for result in self._results))
+    def players(self, new_player = None):
+        if new_player is not None and isinstance(new_player, Player):
+            if new_player not in self._players:
+                self._players.append(new_player)
+        return self._players
 
     def average_score(self, player):
-        # Calculate the average score for a given player in the game
         player_scores = [result.score for result in self._results if result.player == player]
-        if player_scores:
-            return sum(player_scores) / len(player_scores)
-        return 0
+        return sum(player_scores) / len(player_scores) if player_scores else 0
 
 
 class Player:
-    all = []
-
     def __init__(self, username):
-        self._username = None
-        self.username = username
+        self._username = username
         self._results = []
+        self._games_played = []
 
     @property
     def username(self):
@@ -46,67 +45,66 @@ class Player:
         if isinstance(username, str) and 2 <= len(username) <= 16:
             self._username = username
 
-    def results(self):
+    def results(self, new_result=None):
+        if new_result is not None and isinstance(new_result, Result):
+            if new_result not in self._results:
+                self._results.append(new_result)
         return self._results
 
-    def games_played(self):
-        # Return a list of unique games the player participated in
-        return list(set(result.game for result in self._results))
+    def games_played(self, new_game=None):
+        if new_game is not None and isinstance(new_game, Game):
+            if new_game not in self._games_played:
+                self._games_played.append(new_game)
+        return self._games_played
 
     def played_game(self, game):
-        # Check if the player played a specific game
-        return any(result.game == game for result in self._results)
+        return game in self._games_played
 
     def num_times_played(self, game):
-        # Count the number of times the player played a specific game
-        return sum(result.game == game for result in self._results)
-
+        return sum(1 for result in self._results if result.game == game)
 
 class Result:
+
     all = []
 
     def __init__(self, player, game, score):
         self.player = player
         self.game = game
         self.score = score
-        player.results().append(self)
-        game.results().append(self)
+
+        player.results(self)
+        player.games_played(game)
+
+        game.results(self)
+        game.players(player)
+
+        Result.all.append(self)
 
     @property
     def score(self):
         return self._score
-
+    
     @score.setter
     def score(self, score):
         if isinstance(score, int) and 1 <= score <= 5000 and not hasattr(self, 'score'):
             self._score = score
 
-    @classmethod
-    def all(cls):
-        return cls.all
+            
+    @property
+    def player(self): 
+        return self._player
+    
+    @player.setter
+    def player(self, player):
+        if isinstance(player, Player):
+            self._player = player
 
-
-def played_game(self, game):
-    # Check if the player played a specific game
-    return any(result.game == game for result in self._results)
-
-
-def num_times_played(self, game):
-    # Count the number of times the player played a specific game
-    return sum(result.game == game for result in self._results)
-
-
-# Add played_game and num_times_played methods to Player class dynamically
-Player.played_game = played_game
-Player.num_times_played = num_times_played
-
-
-def average_score(self, player):
-    player_scores = [result.score for result in self._results if result.player == player]
-    if player_scores:
-        return sum(player_scores) / len(player_scores)
-    return 0
-
-
-# Add average_score method to Game class
-Game.average_score = average_score
+    @property
+    def game(self):
+        return self._game
+    
+    @game.setter
+    def game(self, game):
+        if isinstance(game, Game):
+            self._game = game
+       
